@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Money Tracker</h1>
+
+        <form action="/add-transaction" method="POST" class="form">
+            <div class="form-group">
+                <label for="type">Type:</label>
+                <select name="type" id="type">
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount:</label>
+                <input type="number" name="amount" id="amount" required>
+            </div>
+            <div class="form-group">
+                <label for="info">Info:</label>
+                <input type="text" name="info" id="info">
+            </div>
+            <div class="form-group">
+                <label for="date">Date:</label>
+                <input type="date" name="date" id="date" value="">
+            </div>
+            <button type="submit">Add Transaction</button>
+        </form>
+
+        <h2>Transactions</h2>
+        <ul class="transaction-list" id="transaction-list"></ul>
+
+        <h3>Total: $<span id="total-amount">0</span></h3>
+    </div>
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const transactionList = document.getElementById('transaction-list');
+            const totalAmount = document.getElementById('total-amount');
+
+            // Fetch transactions from the server
+            const response = await fetch('/transactions');
+            const transactions = await response.json();
+
+            let total = 0;
+            transactions.forEach(transaction => {
+                const li = document.createElement('li');
+                li.className = transaction.type;
+                li.innerHTML = `
+        <span>${new Date(transaction.date).toLocaleDateString()} - ${transaction.type}:</span>
+        <span>$${transaction.amount}</span>
+        <span>${transaction.info}</span>
+        <form action="/delete-transaction" method="POST" style="display:inline;">
+          <input type="hidden" name="id" value="${transaction._id}">
+          <button type="submit" class="delete-btn">Delete</button>
+        </form>
+      `;
+                transactionList.appendChild(li);
+
+                total += transaction.type === 'income' ? transaction.amount : -transaction.amount;
+            });
+
+            totalAmount.textContent = total;
+        });
+    </script>
+</body>
+
+</html>
